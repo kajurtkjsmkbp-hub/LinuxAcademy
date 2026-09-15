@@ -67,9 +67,23 @@
             <span style="font-size: 13px; color: #8b949e;">
                 <i class="bi bi-list-task"></i> {{ mod.lab_tasks|length }} Tugas Lab
             </span>
+            {% set is_locked = False %}
+            {% if current_user and current_user.role == 'siswa' and mod.order > 1 %}
+                {% set prev_mod_id = 'modul-' ~ (mod.order - 1) %}
+                {% if prev_mod_id not in completed_modules %}
+                    {% set is_locked = True %}
+                {% endif %}
+            {% endif %}
+            
+            {% if is_locked %}
+            <a href="#" class="btn btn-secondary btn-sm" style="padding: 6px 14px; font-size: 13px; opacity: 0.5; cursor: not-allowed; pointer-events: none;">
+                <i class="bi bi-lock-fill"></i> Terkunci
+            </a>
+            {% else %}
             <a href="/learn?module={{ mod.id }}" class="btn btn-secondary btn-sm" style="padding: 6px 14px; font-size: 13px;">
                 Mulai Modul <i class="bi bi-chevron-right"></i>
             </a>
+            {% endif %}
         </div>
     </div>
     {% endfor %}

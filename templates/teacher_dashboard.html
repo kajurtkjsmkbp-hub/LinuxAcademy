@@ -68,6 +68,38 @@
         </div>
     </div>
 
+    <!-- Certificate Settings -->
+    <div class="dashboard-table-card" style="margin-bottom: 24px;">
+        <div class="table-card-header" style="padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700;"><i class="bi bi-gear-fill text-secondary"></i> Pengaturan Nama Instruktur pada Sertifikat</h3>
+                <p style="font-size: 13px; color: #8b949e; margin-top: 2px;">Nama ini akan muncul sebagai penandatangan di sertifikat siswa.</p>
+            </div>
+        </div>
+        <div style="padding: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--border-color);">
+            <label for="instructor-name-setting" style="font-size: 14px; font-weight: 600; width: 140px;">Nama Instruktur:</label>
+            <input type="text" id="instructor-name-setting" class="search-input" style="width: 300px; padding: 6px 12px;" value="{{ instructor_name }}" placeholder="Contoh: Bpk. Ahmad Fauzi, M.Kom">
+            <button class="btn btn-primary" onclick="saveInstructorName()"><i class="bi bi-save"></i> Simpan Nama</button>
+            <span id="save-indicator" style="font-size: 13px; color: #3fb950; display: none;"><i class="bi bi-check-circle-fill"></i> Tersimpan!</span>
+        </div>
+        <div style="padding: 16px; display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+            <label style="font-size: 14px; font-weight: 600; width: 140px;">Tanda Tangan:</label>
+            <div style="flex: 1; min-width: 300px;">
+                {% if instructor_signature %}
+                <div style="margin-bottom: 10px; padding: 10px; background: #fff; border-radius: 4px; display: inline-block;">
+                    <img src="{{ url_for('static', filename='uploads/' + instructor_signature) }}" alt="Tanda Tangan" style="max-height: 60px; object-fit: contain;">
+                </div>
+                {% endif %}
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="instructor-sig-file" accept=".png,.jpg,.jpeg" class="search-input" style="padding: 4px; font-size: 13px; background: var(--bg-surface);">
+                    <button class="btn btn-secondary" onclick="uploadSignature()"><i class="bi bi-upload"></i> Upload</button>
+                    <span id="upload-indicator" style="font-size: 13px; color: #3fb950; display: none;"><i class="bi bi-check-circle-fill"></i> Berhasil!</span>
+                </div>
+                <div style="font-size: 11px; color: #8b949e; margin-top: 6px;">Format yang didukung: PNG, JPG (Disarankan PNG dengan latar transparan).</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Student Table Section -->
     <div class="dashboard-table-card">
         <div class="table-card-header">
@@ -170,6 +202,70 @@
 </div>
 
 <script>
+    function saveInstructorName() {
+        const nameInput = document.getElementById('instructor-name-setting').value.trim();
+        if (!nameInput) {
+            alert('Nama instruktur tidak boleh kosong!');
+            return;
+        }
+        
+        fetch('/api/settings/instructor', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ instructor_name: nameInput })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const indicator = document.getElementById('save-indicator');
+                indicator.style.display = 'inline-block';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 3000);
+            } else {
+                alert('Gagal menyimpan: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan jaringan.');
+        });
+    }
+
+    function uploadSignature() {
+        const fileInput = document.getElementById('instructor-sig-file');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Pilih file tanda tangan terlebih dahulu!');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('signature', fileInput.files[0]);
+
+        fetch('/api/settings/signature', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const indicator = document.getElementById('upload-indicator');
+                indicator.style.display = 'inline-block';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                alert('Gagal upload: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan jaringan.');
+        });
+    }
+
     function filterStudents() {
         const query = document.getElementById('student-search-input').value.toLowerCase().trim();
         const statusFilter = document.getElementById('student-status-filter').value;

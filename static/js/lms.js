@@ -347,9 +347,14 @@ class LMSController {
                 <div class="alert alert-success">
                     <h4><i class="bi bi-trophy-fill"></i> Selamat! Anda Lulus Kuis!</h4>
                     <p>Skor Anda: <strong>${scorePercent}%</strong> (${correctCount} dari ${quiz.length} benar). Modul ini resmi terselesaikan!</p>
+                    <p style="margin-top:10px; font-size:13px;"><i class="bi bi-arrow-clockwise"></i> Halaman akan dimuat ulang dalam 3 detik untuk membuka modul selanjutnya...</p>
                 </div>
             `;
             this.showToast('Kuis Selesai! 🏆', `Skor Anda: ${scorePercent}%! Modul terselesaikan.`);
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
         } else {
             summaryEl.innerHTML = `
                 <div class="alert alert-warning">

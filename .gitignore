@@ -1,9 +1,9 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
+*.class
 
-# SQLite Database (dibuat otomatis oleh db.init_db())
+# SQLite Database
 *.db
 *.sqlite3
 
@@ -17,3 +17,7 @@ venv/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Uploads & Settings
+settings.json
+static/uploads/

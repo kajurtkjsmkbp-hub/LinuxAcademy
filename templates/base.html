@@ -148,10 +148,12 @@
 
 
     <!-- Footer -->
+    {% if not request.path.startswith('/learn') and not request.path.startswith('/lab') %}
     <footer class="lms-footer">
         <p>© 2026 <strong>Adiningtyas Yuli Purwanto,S.Kom</strong> — Platform LMS & Virtual Lab Linux Interaktif Terbuka.</p>
         <p style="margin-top: 4px; font-size: 12px; color: #6e7681;">Dibuat untuk praktikum sistem operasi Linux dengan simulator Virtual File System (VFS) in-browser.</p>
     </footer>
+    {% endif %}
 
     <!-- Core Scripts -->
     <script>

@@ -8,9 +8,44 @@ from functools import wraps
 import json
 import os
 import db
+import uuid
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'linux-lms-super-secret-key-2026'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'settings.json')
+
+def get_settings():
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            pass
+    return {}
+
+def get_instructor_name():
+    return get_settings().get('instructor_name', 'Instruktur Linux Lab')
+
+def get_instructor_signature():
+    return get_settings().get('instructor_signature', None)
+
+def set_instructor_name(name):
+    data = get_settings()
+    data['instructor_name'] = name
+    with open(SETTINGS_FILE, 'w') as f:
+        json.dump(data, f)
+
+def set_instructor_signature(filename):
+    data = get_settings()
+    data['instructor_signature'] = filename
+    with open(SETTINGS_FILE, 'w') as f:
+        json.dump(data, f)
 
 # Initialize SQLite database
 db.init_db()
@@ -1038,13 +1073,34 @@ LAB_SCENARIOS = [
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html', modules=MODULES, challenges=CHALLENGES)
+    user_id = session.get('user_id')
+    user_role = session.get('role')
+    completed_modules = []
+    if user_role == 'siswa' and user_id:
+        progress = db.get_student_progress(user_id)
+        completed_modules = progress.get('completed_modules', [])
+    return render_template('index.html', modules=MODULES, challenges=CHALLENGES, completed_modules=completed_modules)
 
 @app.route('/learn')
 def learn():
+    user_id = session.get('user_id')
+    user_role = session.get('role')
+    
     module_id = request.args.get('module', 'modul-1')
     current_module = next((m for m in MODULES if m['id'] == module_id), MODULES[0])
-    return render_template('learn.html', modules=MODULES, current_module=current_module)
+    
+    completed_modules = []
+    if user_role == 'siswa' and user_id:
+        progress = db.get_student_progress(user_id)
+        completed_modules = progress.get('completed_modules', [])
+        
+        if current_module['order'] > 1:
+            prev_module_id = f"modul-{current_module['order'] - 1}"
+            if prev_module_id not in completed_modules:
+                flash(f'Akses ditolak! Anda harus menyelesaikan Modul {current_module["order"] - 1} terlebih dahulu sebelum dapat mengakses Modul {current_module["order"]}.', 'warning')
+                return redirect(url_for('learn', module=prev_module_id))
+                
+    return render_template('learn.html', modules=MODULES, current_module=current_module, completed_modules=completed_modules)
 
 @app.route('/lab')
 def lab():
@@ -1061,7 +1117,19 @@ def cheatsheet():
 
 @app.route('/certificate')
 def certificate():
-    return render_template('certificate.html', modules=MODULES)
+    user_id = session.get('user_id')
+    user_role = session.get('role')
+    
+    if user_role == 'siswa' and user_id:
+        progress = db.get_student_progress(user_id)
+        completed = progress.get('completed_modules', [])
+        if len(completed) < len(MODULES):
+            flash('Sertifikat belum bisa diklaim! Anda harus menyelesaikan seluruh modul dan kuis evaluasi terlebih dahulu.', 'warning')
+            return redirect(url_for('learn'))
+
+    instructor_name = get_instructor_name()
+    instructor_signature = get_instructor_signature()
+    return render_template('certificate.html', modules=MODULES, instructor_name=instructor_name, instructor_signature=instructor_signature)
 
 # Authentication & Account Routes
 @app.route('/login', methods=['GET', 'POST'])
@@ -1183,7 +1251,9 @@ def teacher_dashboard():
                            certified_count=certified_count, 
                            avg_class_points=avg_class_points,
                            modules=MODULES, 
-                           challenges=CHALLENGES)
+                           challenges=CHALLENGES,
+                           instructor_name=get_instructor_name(),
+                           instructor_signature=get_instructor_signature())
 
 @app.route('/teacher/curriculum')
 @teacher_required
@@ -1199,6 +1269,34 @@ def teacher_verify_cert():
     return render_template('teacher_verify_cert.html', students=students, modules=MODULES)
 
 # API Endpoints
+@app.route('/api/settings/instructor', methods=['POST'])
+@teacher_required
+def api_set_instructor():
+    data = request.get_json() or {}
+    name = data.get('instructor_name', '').strip()
+    if name:
+        set_instructor_name(name)
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Nama tidak boleh kosong'})
+
+@app.route('/api/settings/signature', methods=['POST'])
+@teacher_required
+def api_upload_signature():
+    if 'signature' not in request.files:
+        return jsonify({'success': False, 'message': 'Tidak ada file yang diunggah'})
+    
+    file = request.files['signature']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'File kosong'})
+    
+    if file and file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+        filename = secure_filename(f"sig_{uuid.uuid4().hex[:8]}_{file.filename}")
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        set_instructor_signature(filename)
+        return jsonify({'success': True, 'filename': filename})
+    
+    return jsonify({'success': False, 'message': 'Format file tidak didukung (gunakan PNG/JPG)'})
+
 @app.route('/api/current-user')
 def api_current_user():
     user_id = session.get('user_id')

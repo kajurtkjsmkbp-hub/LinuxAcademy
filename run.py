@@ -13,7 +13,7 @@ import time
 def start_server():
     from app import app
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='127.0.0.1', port=port, debug=False)
+    app.run(host='127.0.0.1', port=port, debug=True)
 
 def open_browser():
     time.sleep(1.2)

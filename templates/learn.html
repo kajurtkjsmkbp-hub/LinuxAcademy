@@ -14,8 +14,15 @@
             <div>
                 <select class="lesson-selector-dropdown" onchange="window.location.href='/learn?module=' + this.value;">
                     {% for mod in modules %}
-                    <option value="{{ mod.id }}" {% if mod.id == current_module.id %}selected{% endif %}>
-                        Modul {{ mod.order }}: {{ mod.title }}
+                    {% set is_locked = False %}
+                    {% if current_user and current_user.role == 'siswa' and mod.order > 1 %}
+                        {% set prev_mod_id = 'modul-' ~ (mod.order - 1) %}
+                        {% if prev_mod_id not in completed_modules %}
+                            {% set is_locked = True %}
+                        {% endif %}
+                    {% endif %}
+                    <option value="{{ mod.id }}" {% if mod.id == current_module.id %}selected{% endif %} {% if is_locked %}disabled{% endif %}>
+                        Modul {{ mod.order }}: {{ mod.title }} {% if is_locked %}(🔒 Terkunci){% endif %}
                     </option>
                     {% endfor %}
                 </select>
@@ -79,21 +86,33 @@
                 {% endif %}
 
                 {% if current_module.order < modules|length %}
-                <a href="/learn?module=modul-{{ current_module.order + 1 }}" class="btn btn-primary">
-                    Modul Selanjutnya (Modul {{ current_module.order + 1 }}) <i class="bi bi-chevron-right"></i>
-                </a>
+                    {% if current_user and current_user.role == 'siswa' and current_module.id not in completed_modules %}
+                    <button class="btn btn-primary" style="opacity: 0.5; cursor: not-allowed;" onclick="alert('Selesaikan seluruh lab dan kuis pada modul ini terlebih dahulu!');">
+                        <i class="bi bi-lock-fill"></i> Selesaikan Modul Ini Dulu
+                    </button>
+                    {% else %}
+                    <a href="/learn?module=modul-{{ current_module.order + 1 }}" class="btn btn-primary">
+                        Modul Selanjutnya (Modul {{ current_module.order + 1 }}) <i class="bi bi-chevron-right"></i>
+                    </a>
+                    {% endif %}
                 {% else %}
-                <a href="/certificate" class="btn btn-primary" style="background-color: var(--accent-yellow); color: #000;">
-                    <i class="bi bi-award-fill"></i> Selesai! Klaim Sertifikat Anda
-                </a>
+                    {% if current_user and current_user.role == 'siswa' and current_module.id not in completed_modules %}
+                    <button class="btn btn-primary" style="opacity: 0.5; cursor: not-allowed; background-color: var(--accent-yellow); color: #000;" onclick="alert('Selesaikan kuis modul terakhir ini untuk membuka sertifikat!');">
+                        <i class="bi bi-lock-fill"></i> Sertifikat Terkunci
+                    </button>
+                    {% else %}
+                    <a href="/certificate" class="btn btn-primary" style="background-color: var(--accent-yellow); color: #000;">
+                        <i class="bi bi-award-fill"></i> Selesai! Klaim Sertifikat Anda
+                    </a>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Right Column: Interactive Linux Terminal -->
-    <div style="display: flex; flex-direction: column; height: 100%;">
-        <div id="terminal-container" style="flex: 1; height: 100%;">
+    <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden; min-height: 0;">
+        <div id="terminal-container" style="flex: 1; height: 100%; overflow: hidden; min-height: 0;">
             <!-- Terminal UI injected by terminal.js -->
         </div>
     </div>
