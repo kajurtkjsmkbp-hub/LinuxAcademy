@@ -161,16 +161,17 @@
                         <th style="width: 15%;">Rata-rata Kuis</th>
                         <th style="width: 10%;">Total Poin</th>
                         <th style="width: 16%;">Status Sertifikasi</th>
+                        <th style="width: 15%;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in students %}
                     <tr class="student-row" data-name="{{ s.fullname|lower }}" data-username="{{ s.username|lower }}" data-certified="{{ 'true' if s.certified else 'false' }}">
                         <td>
-                            <div class="student-profile-cell">
+                            <div class="student-profile-cell" style="{% if not s.is_active %}opacity: 0.5;{% endif %}">
                                 <div class="student-avatar">{{ s.fullname[:1]|upper }}</div>
                                 <div>
-                                    <div class="student-name">{{ s.fullname }}</div>
+                                    <div class="student-name">{{ s.fullname }} {% if not s.is_active %}(Nonaktif){% endif %}</div>
                                     <div class="student-username">@{{ s.username }} {% if s.email %}• {{ s.email }}{% endif %}</div>
                                 </div>
                             </div>
@@ -216,6 +217,19 @@
                             </span>
                             {% endif %}
                         </td>
+                        <td>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <button class="btn btn-primary" style="padding: 2px 6px; font-size: 11px;" onclick="editStudent('{{ s.id }}', '{{ s.username }}', '{{ s.fullname }}')" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                                <form method="POST" action="/api/admin/toggle_student/{{ s.id }}" style="display:inline;">
+                                    <button type="submit" class="btn {% if s.is_active %}btn-warning{% else %}btn-success{% endif %}" style="padding: 2px 6px; font-size: 11px;" title="{% if s.is_active %}Nonaktifkan{% else %}Aktifkan{% endif %}">
+                                        <i class="bi {% if s.is_active %}bi-pause-circle{% else %}bi-play-circle{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="/api/admin/delete_student/{{ s.id }}" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus siswa ini secara permanen? Semua progres akan hilang.');">
+                                    <button type="submit" class="btn btn-danger" style="padding: 2px 6px; font-size: 11px;" title="Hapus"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -230,7 +244,43 @@
     </div>
 </div>
 
+<!-- Edit Student Modal -->
+<div id="editStudentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: var(--bg-surface); padding: 25px; border-radius: 8px; width: 100%; max-width: 400px; border: 1px solid var(--border-color);">
+        <h3 style="margin-bottom: 15px; font-size: 18px;"><i class="bi bi-pencil-square text-primary"></i> Edit Data Siswa</h3>
+        <form id="editStudentForm" method="POST">
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Username</label>
+                <input type="text" id="edit-username" name="username" class="search-input" style="width: 100%; padding: 8px 12px;" required>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Nama Lengkap</label>
+                <input type="text" id="edit-fullname" name="fullname" class="search-input" style="width: 100%; padding: 8px 12px;" required>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Kata Sandi Baru (Kosongkan jika tidak ingin diubah)</label>
+                <input type="password" name="password" class="search-input" style="width: 100%; padding: 8px 12px;" placeholder="Minimal 4 karakter">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+    function editStudent(id, username, fullname) {
+        document.getElementById('editStudentForm').action = '/api/admin/edit_student/' + id;
+        document.getElementById('edit-username').value = username;
+        document.getElementById('edit-fullname').value = fullname;
+        document.getElementById('editStudentModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editStudentModal').style.display = 'none';
+    }
+
     function saveInstructorName() {
         const nameInput = document.getElementById('instructor-name-setting').value.trim();
         if (!nameInput) {

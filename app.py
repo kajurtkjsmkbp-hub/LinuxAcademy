@@ -1365,6 +1365,39 @@ def api_challenges():
 def api_cheatsheet():
     return jsonify(CHEATSHEET)
 
+@app.route('/api/admin/edit_student/<int:student_id>', methods=['POST'])
+@teacher_required
+def api_edit_student(student_id):
+    username = request.form.get('username', '').strip()
+    fullname = request.form.get('fullname', '').strip()
+    password = request.form.get('password', '')
+
+    if not username or not fullname:
+        flash('Username dan Nama Lengkap wajib diisi.', 'danger')
+        return redirect(url_for('teacher_dashboard'))
+
+    result = db.update_user(student_id, username, fullname, password if password else None)
+    if result['success']:
+        flash(f'Data siswa {fullname} berhasil diubah!', 'success')
+    else:
+        flash(f'Gagal mengubah data siswa: {result.get("error")}', 'danger')
+        
+    return redirect(url_for('teacher_dashboard'))
+
+@app.route('/api/admin/delete_student/<int:student_id>', methods=['POST'])
+@teacher_required
+def api_delete_student(student_id):
+    db.delete_user(student_id)
+    flash('Siswa berhasil dihapus dari sistem.', 'success')
+    return redirect(url_for('teacher_dashboard'))
+
+@app.route('/api/admin/toggle_student/<int:student_id>', methods=['POST'])
+@teacher_required
+def api_toggle_student(student_id):
+    db.toggle_user_status(student_id)
+    flash('Status siswa berhasil diperbarui.', 'success')
+    return redirect(url_for('teacher_dashboard'))
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"🚀 LMS Linux & Virtual Lab berjalan di: http://127.0.0.1:{port}")

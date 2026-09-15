@@ -30,9 +30,16 @@ def init_db():
             email TEXT UNIQUE,
             password_hash TEXT NOT NULL,
             role TEXT NOT NULL DEFAULT 'siswa', -- 'siswa' or 'guru'
+            is_active INTEGER DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Try to add is_active column for existing databases
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1")
+    except sqlite3.OperationalError:
+        pass # Column likely already exists
 
     # Student progress table
     cursor.execute("""
@@ -125,6 +132,8 @@ def authenticate_user(username_or_email, password):
     conn.close()
 
     if user and check_password_hash(user['password_hash'], password):
+        if not user['is_active']:
+            return {'error': 'Akun dinonaktifkan.'}
         return dict(user)
     return None
 
@@ -196,6 +205,7 @@ def get_all_students_overview():
             u.username,
             u.fullname,
             u.email,
+            u.is_active,
             u.created_at,
             COALESCE(p.completed_modules, '[]') as completed_modules,
             COALESCE(p.completed_tasks, '[]') as completed_tasks,
@@ -227,6 +237,7 @@ def get_all_students_overview():
             'username': r['username'],
             'fullname': r['fullname'],
             'email': r['email'],
+            'is_active': r['is_active'],
             'created_at': r['created_at'],
             'last_activity': r['last_activity'],
             'completed_modules_count': len(c_mods),
@@ -240,3 +251,37 @@ def get_all_students_overview():
         })
 
     return students
+
+def update_user(user_id, username, fullname, password=None):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        if password:
+            pw_hash = generate_password_hash(password)
+            cursor.execute("UPDATE users SET username = ?, fullname = ?, password_hash = ? WHERE id = ?", 
+                           (username.strip().lower(), fullname.strip(), pw_hash, user_id))
+        else:
+            cursor.execute("UPDATE users SET username = ?, fullname = ? WHERE id = ?", 
+                           (username.strip().lower(), fullname.strip(), user_id))
+        conn.commit()
+        return {'success': True}
+    except sqlite3.IntegrityError:
+        return {'success': False, 'error': 'Username sudah digunakan!'}
+    finally:
+        conn.close()
+
+def delete_user(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+def toggle_user_status(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET is_active = CASE WHEN is_active = 1 THEN 0 ELSE 1 END WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return True
