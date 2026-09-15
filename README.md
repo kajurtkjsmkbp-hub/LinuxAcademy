@@ -89,6 +89,10 @@ Untuk menguji coba sistem secara instan, Anda dapat masuk menggunakan akun defau
   * Password: `siswa123`
   * Akses: Modul belajar, terminal virtual, kuis, progres cloud, sertifikat.
 
+### 🌐 Panduan Deployment di Server / Proxmox LXC
+Untuk panduan instalasi lengkap di server produksi atau **LXC Container Proxmox VE** menggunakan Gunicorn, Nginx, dan Systemd auto-start, silakan baca dokumentasi terpisah di:  
+👉 **[PANDUAN_PROXMOX_LXC.md](PANDUAN_PROXMOX_LXC.md)**
+
 ---
 
 ## 📁 Struktur Direktori
@@ -99,8 +103,9 @@ H:\My Drive\PROYEK\coba\
 ├── db.py                      # Modul database SQLite & otentikasi user
 ├── database.db                # Database SQLite lokal (auto-created)
 ├── run.py                     # Runner script yang otomatis membuka browser
-├── requirements.txt           # Dependensi Python (Flask)
+├── requirements.txt           # Dependensi Python (Flask & Gunicorn)
 ├── README.md                  # Dokumentasi panduan
+├── PANDUAN_PROXMOX_LXC.md     # Panduan instalasi di LXC Container Proxmox VE
 ├── static/
 │   ├── css/
 │   │   ├── style.css          # Desain antarmuka modern & responsif (Auth & LMS)
