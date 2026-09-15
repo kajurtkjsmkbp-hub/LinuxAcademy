@@ -22,6 +22,15 @@
     </div>
 </div>
 
+{% if current_user and current_user.role == 'guru' %}
+<div class="callout callout-info" style="margin-top: 0; margin-bottom: 16px; background: rgba(240, 136, 62, 0.1); border-left-color: #f0883e;">
+    <div class="callout-title" style="color: #f0883e;"><i class="bi bi-projector-fill"></i> Mode Mengajar Instruktur Aktif</div>
+    <div style="font-size: 13px; color: #c9d1d9;">
+        Terminal ini siap digunakan untuk demonstrasi di depan kelas. Gunakan tombol pintasan perintah di bawah atau klik ikon layar penuh di pojok kanan terminal untuk presentasi proyektor.
+    </div>
+</div>
+{% endif %}
+
 <!-- Scenario Details Banner -->
 <div class="callout" id="scenario-info-banner" style="margin-top: 0; margin-bottom: 16px; background-color: var(--bg-card); border-left-color: var(--accent-green);">
     <div class="callout-title" id="scenario-info-title"><i class="bi bi-info-circle"></i> Skenario Aktif</div>

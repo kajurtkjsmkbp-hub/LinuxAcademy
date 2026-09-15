@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Panduan Materi & Kunci Jawaban Kuis — Portal Instruktur{% endblock %}
+
+{% block content %}
+<div class="teacher-dashboard-wrap">
+    <!-- Header -->
+    <div class="teacher-header-banner">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span class="task-badge badge-pending" style="color: #f0883e; border-color: rgba(240, 136, 62, 0.4); font-size: 13px;">
+                    <i class="bi bi-journal-check"></i> Buku Pegangan Instruktur
+                </span>
+                <span style="color: #8b949e; font-size: 13px;">Kurikulum & Kunci Pembahasan</span>
+            </div>
+            <h1 style="font-size: 26px; font-weight: 800;">Materi, Tugas Praktik & Kunci Jawaban Kuis</h1>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+                Gunakan halaman ini untuk memandu presentasi di kelas, meninjau instruksi tugas lab, dan melihat kunci jawaban kuis evaluasi.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <label for="mod-select" style="font-size: 13px; color: #8b949e;">Pilih Modul:</label>
+            <select id="mod-select" class="lesson-selector-dropdown" onchange="window.location.href='/teacher/curriculum?module=' + this.value;">
+                {% for m in modules %}
+                <option value="{{ m.id }}" {% if m.id == current_module.id %}selected{% endif %}>
+                    Modul {{ m.order }}: {{ m.title }} ({{ m.duration }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Main 2-Column Grid -->
+    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start;">
+        <!-- Left: Reading Sections Overview -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
+                <div>
+                    <span class="module-number">MODUL {{ current_module.order }}</span>
+                    <h2 style="font-size: 20px; font-weight: 700; margin-top: 4px;">{{ current_module.title }}</h2>
+                </div>
+                <span class="task-badge badge-done" style="font-size: 13px;">{{ current_module.level }}</span>
+            </div>
+
+            <p style="color: #8b949e; font-size: 14px; margin-bottom: 20px;">
+                <strong>Ringkasan Modul:</strong> {{ current_module.summary }}
+            </p>
+
+            <h3 style="font-size: 16px; font-weight: 700; color: #58a6ff; margin-bottom: 16px;">
+                <i class="bi bi-collection-play"></i> Silabus Pembahasan Materi:
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {% for sec in current_module.sections %}
+                <div style="background: #0d1117; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 16px;">
+                    <h4 style="font-size: 15px; font-weight: 600; color: #f0f6fc; margin-bottom: 10px;">
+                        {{ loop.index }}. {{ sec.title }}
+                    </h4>
+                    <div style="font-size: 13.5px; color: #c9d1d9; line-height: 1.6;">
+                        {{ sec.content|safe }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right: Lab Tasks Guide & Quiz Answer Key -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Lab Tasks Solution Box -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 22px;">
+                <h3 style="font-size: 16px; font-weight: 700; color: #3fb950; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-list-check"></i> Checklist Tugas Lab & Perintah Solusi
+                </h3>
+                <p style="font-size: 12.5px; color: #8b949e; margin-bottom: 16px;">
+                    Kunci perintah yang diharapkan dieksekusi siswa di terminal lab:
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    {% for t in current_module.lab_tasks %}
+                    <div style="background: #0d1117; border-left: 3px solid #3fb950; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); border-radius: 4px; padding: 12px;">
+                        <div style="font-size: 13px; font-weight: 600; color: #f0f6fc; margin-bottom: 6px;">
+                            {{ loop.index }}. {{ t.text|safe }}
+                        </div>
+                        <div style="font-size: 12px; color: #8b949e; background: #161b22; padding: 6px 10px; border-radius: 4px; font-family: var(--font-mono);">
+                            <strong style="color: #58a6ff;">Solusi/Kriteria:</strong> 
+                            {% if t.expected %}
+                            <code>{{ t.expected }}</code>
+                            {% elif t.path %}
+                            File: <code>{{ t.path }}</code> (Mode: {{ t.expected_mode or 'any' }})
+                            {% else %}
+                            Tipe validasi: {{ t.check_type }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quiz Answer Key Box -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 22px;">
+                <h3 style="font-size: 16px; font-weight: 700; color: #d29922; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-patch-question-fill"></i> Kunci Jawaban Kuis & Pembahasan
+                </h3>
+                <p style="font-size: 12.5px; color: #8b949e; margin-bottom: 16px;">
+                    Gunakan kunci ini saat membahas kuis bersama siswa:
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    {% for q in current_module.quiz %}
+                    <div style="background: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
+                        <div style="font-size: 13.5px; font-weight: 600; color: #f0f6fc; margin-bottom: 10px;">
+                            Soal {{ loop.index }}: {{ q.question }}
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+                            {% for opt in q.options %}
+                            {% set is_correct = loop.index0 == q.answer %}
+                            <div style="font-size: 12.5px; padding: 6px 10px; border-radius: 4px; background: {{ 'rgba(46, 160, 67, 0.15)' if is_correct else '#161b22' }}; border: 1px solid {{ '#3fb950' if is_correct else 'transparent' }}; color: {{ '#3fb950' if is_correct else '#c9d1d9' }};">
+                                {% if is_correct %}<i class="bi bi-check-circle-fill"></i> <strong>Kunci Benar:</strong> {% endif %}
+                                {{ opt }}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div style="font-size: 12px; color: #8b949e; background: #161b22; padding: 8px 10px; border-radius: 4px;">
+                            <strong style="color: #e95420;">Pembahasan:</strong> {{ q.explanation }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

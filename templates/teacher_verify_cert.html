@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Validasi Keaslian Sertifikat Siswa — Portal Instruktur{% endblock %}
+
+{% block content %}
+<div class="teacher-dashboard-wrap">
+    <!-- Header -->
+    <div class="teacher-header-banner">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span class="task-badge badge-pending" style="color: #f0883e; border-color: rgba(240, 136, 62, 0.4); font-size: 13px;">
+                    <i class="bi bi-patch-check-fill"></i> Instrumen Verifikasi Instruktur
+                </span>
+                <span style="color: #8b949e; font-size: 13px;">Sistem Audit Kelulusan</span>
+            </div>
+            <h1 style="font-size: 26px; font-weight: 800;">Alat Validasi & Verifikasi Sertifikat Siswa</h1>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+                Periksa kelayakan dan keabsahan sertifikat siswa berdasarkan rekam jejak penyelesaian 7 modul dan kuis evaluasi.
+            </p>
+        </div>
+
+        <div>
+            <a href="/teacher/dashboard" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Student Selector -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1; max-width: 500px;">
+            <label for="select-student-verify" style="font-weight: 600; font-size: 14px; white-space: nowrap;">
+                <i class="bi bi-search"></i> Pilih Siswa untuk Diverifikasi:
+            </label>
+            <select id="select-student-verify" class="lesson-selector-dropdown" style="flex: 1; padding: 8px 12px;" onchange="inspectStudent(this.value)">
+                {% for s in students %}
+                <option value="{{ s.id }}">{{ s.fullname }} (@{{ s.username }}) - {{ s.completed_modules_count }}/7 Modul</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="font-size: 13px; color: #8b949e;">
+            Syarat Kelulusan: <strong>7/7 Modul Tuntas</strong> & <strong>Rata-rata Kuis ≥ 70%</strong>
+        </div>
+    </div>
+
+    <!-- Verification Result Card -->
+    <div id="verify-result-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 28px; margin-bottom: 24px;">
+        <!-- Injected via JavaScript -->
+    </div>
+</div>
+
+<script>
+    const studentsData = {{ students|tojson }};
+
+    function inspectStudent(studentId) {
+        const s = studentsData.find(item => item.id == studentId) || studentsData[0];
+        const container = document.getElementById('verify-result-card');
+        if (!s || !container) return;
+
+        const isEligible = s.completed_modules_count >= 7 && s.avg_score >= 70;
+        const statusBadge = isEligible
+            ? `<div class="alert alert-success" style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">
+                 <i class="bi bi-patch-check-fill" style="font-size: 24px;"></i>
+                 <div>
+                   <div>STATUS: RESMI TERVERIFIKASI & MEMENUHI SYARAT KELULUSAN</div>
+                   <div style="font-size: 13px; font-weight: 400; color: #3fb950;">Siswa telah memenuhi seluruh kriteria kelulusan resmi LinuxAcademy Virtual Lab.</div>
+                 </div>
+               </div>`
+            : `<div class="alert alert-warning" style="font-size: 16px; font-weight: 700; margin-bottom: 20px;">
+                 <i class="bi bi-exclamation-triangle-fill" style="font-size: 24px;"></i>
+                 <div>
+                   <div>STATUS: BELUM MEMENUHI SYARAT KELULUSAN RESMI</div>
+                   <div style="font-size: 13px; font-weight: 400; color: #d29922;">Siswa belum menuntaskan 7 modul atau skor kuis masih di bawah ambang batas minimal (70%).</div>
+                 </div>
+               </div>`;
+
+        container.innerHTML = `
+            ${statusBadge}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Profile details -->
+                <div style="background: #0d1117; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px;">
+                    <h4 style="font-size: 14px; font-weight: 700; color: #58a6ff; margin-bottom: 12px; text-transform: uppercase;">
+                        <i class="bi bi-person-badge"></i> Data Identitas Siswa
+                    </h4>
+                    <table style="width: 100%; font-size: 13.5px; line-height: 2;">
+                        <tr><td style="color: #8b949e; width: 140px;">Nama Lengkap:</td><td><strong>${s.fullname}</strong></td></tr>
+                        <tr><td style="color: #8b949e;">Username Akun:</td><td><code>@${s.username}</code></td></tr>
+                        <tr><td style="color: #8b949e;">Email:</td><td>${s.email || '-'}</td></tr>
+                        <tr><td style="color: #8b949e;">Tanggal Terdaftar:</td><td>${s.created_at ? s.created_at.slice(0, 10) : '-'}</td></tr>
+                        <tr><td style="color: #8b949e;">Aktivitas Terakhir:</td><td>${s.last_activity ? s.last_activity.slice(0, 19).replace('T', ' ') : 'Baru'}</td></tr>
+                    </table>
+                </div>
+
+                <!-- Academic metrics -->
+                <div style="background: #0d1117; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px;">
+                    <h4 style="font-size: 14px; font-weight: 700; color: #58a6ff; margin-bottom: 12px; text-transform: uppercase;">
+                        <i class="bi bi-clipboard-data"></i> Evaluasi Capaian Belajar
+                    </h4>
+                    <table style="width: 100%; font-size: 13.5px; line-height: 2;">
+                        <tr>
+                            <td style="color: #8b949e; width: 160px;">Progres Modul:</td>
+                            <td><strong style="color: ${s.completed_modules_count >= 7 ? '#3fb950' : '#f0883e'};">${s.completed_modules_count} dari 7 Modul</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #8b949e;">Rata-rata Skor Kuis:</td>
+                            <td><strong style="color: ${s.avg_score >= 70 ? '#3fb950' : '#f85149'};">${s.avg_score}%</strong> (Standar min. 70%)</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #8b949e;">Tugas Lab Terverifikasi:</td>
+                            <td><strong>${s.completed_tasks_count} Tugas</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #8b949e;">Misi CTF Diselesaikan:</td>
+                            <td><strong>${s.solved_challenges_count} Misi</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #8b949e;">Total Poin Belajar:</td>
+                            <td><strong style="color: var(--accent-yellow);">${s.total_points} Poin</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quiz Breakdown Table -->
+            <div style="margin-top: 20px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #c9d1d9; margin-bottom: 10px;">
+                    <i class="bi bi-list-stars"></i> Rekapitulasi Nilai Kuis per Modul:
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;">
+                    ${[1,2,3,4,5,6,7].map(num => {
+                        const mId = 'modul-' + num;
+                        const score = s.quiz_scores ? s.quiz_scores[mId] : undefined;
+                        const hasPassed = score !== undefined && score >= 70;
+                        return `
+                            <div style="background: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center;">
+                                <div style="font-size: 11px; color: #8b949e; text-transform: uppercase;">Modul ${num}</div>
+                                <div style="font-size: 16px; font-weight: 800; color: ${score !== undefined ? (hasPassed ? '#3fb950' : '#f0883e') : '#6e7681'}; margin-top: 2px;">
+                                    ${score !== undefined ? score + '%' : '-'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (studentsData.length > 0) {
+            inspectStudent(studentsData[0].id);
+        }
+    });
+</script>
+{% endblock %}

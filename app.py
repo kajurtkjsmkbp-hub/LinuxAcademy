@@ -19,7 +19,19 @@ db.init_db()
 def inject_user():
     user_id = session.get('user_id')
     current_user = db.get_user_by_id(user_id) if user_id else None
-    return dict(current_user=current_user)
+    class_stats = None
+    if current_user and current_user.get('role') == 'guru':
+        students = db.get_all_students_overview()
+        total_students = len(students)
+        certified_count = sum(1 for s in students if s['certified'])
+        scores = [s['avg_score'] for s in students if s['avg_score'] > 0]
+        avg_score = round(sum(scores) / len(scores)) if scores else 0
+        class_stats = {
+            'total_students': total_students,
+            'certified_count': certified_count,
+            'avg_score': avg_score
+        }
+    return dict(current_user=current_user, class_stats=class_stats)
 
 def login_required(f):
     @wraps(f)
@@ -1172,6 +1184,19 @@ def teacher_dashboard():
                            avg_class_points=avg_class_points,
                            modules=MODULES, 
                            challenges=CHALLENGES)
+
+@app.route('/teacher/curriculum')
+@teacher_required
+def teacher_curriculum():
+    mod_id = request.args.get('module', 'modul-1')
+    current_mod = next((m for m in MODULES if m['id'] == mod_id), MODULES[0])
+    return render_template('teacher_curriculum.html', modules=MODULES, current_module=current_mod)
+
+@app.route('/teacher/verify-cert')
+@teacher_required
+def teacher_verify_cert():
+    students = db.get_all_students_overview()
+    return render_template('teacher_verify_cert.html', students=students, modules=MODULES)
 
 # API Endpoints
 @app.route('/api/current-user')

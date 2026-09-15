@@ -27,49 +27,91 @@
             </a>
 
             {% if current_user %}
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}"><i class="bi bi-house-door"></i> Beranda</a></li>
-                    <li><a href="/learn" class="nav-link {% if request.path == '/learn' %}active{% endif %}"><i class="bi bi-book"></i> Modul Belajar</a></li>
-                    <li><a href="/lab" class="nav-link {% if request.path == '/lab' %}active{% endif %}"><i class="bi bi-terminal"></i> Virtual Lab</a></li>
-                    <li><a href="/challenges" class="nav-link {% if request.path == '/challenges' %}active{% endif %}"><i class="bi bi-flag"></i> Tantangan CTF</a></li>
-                    <li><a href="/cheatsheet" class="nav-link {% if request.path == '/cheatsheet' %}active{% endif %}"><i class="bi bi-card-checklist"></i> Cheatsheet</a></li>
-                    <li><a href="/certificate" class="nav-link {% if request.path == '/certificate' %}active{% endif %}"><i class="bi bi-patch-check"></i> Sertifikat</a></li>
-                    {% if current_user.role == 'guru' %}
-                    <li><a href="/teacher/dashboard" class="nav-link {% if '/teacher' in request.path %}active{% endif %}" style="color: #f0883e; font-weight: 700;"><i class="bi bi-person-workspace"></i> Dashboard Guru</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
+                {% if current_user.role == 'guru' %}
+                <!-- ================= NAVBAR GURU / INSTRUKTUR ================= -->
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="/teacher/dashboard" class="nav-link {% if request.path == '/teacher/dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard Kelas</a></li>
+                        <li><a href="/teacher/curriculum" class="nav-link {% if request.path == '/teacher/curriculum' %}active{% endif %}"><i class="bi bi-journal-text"></i> Materi & Kunci Kuis</a></li>
+                        <li><a href="/lab?mode=teaching" class="nav-link {% if '/lab' in request.path %}active{% endif %}"><i class="bi bi-projector-fill"></i> Lab Mode Mengajar</a></li>
+                        <li><a href="/teacher/verify-cert" class="nav-link {% if request.path == '/teacher/verify-cert' %}active{% endif %}"><i class="bi bi-patch-check-fill"></i> Validasi Sertifikat</a></li>
+                        <li><a href="/cheatsheet" class="nav-link {% if request.path == '/cheatsheet' %}active{% endif %}"><i class="bi bi-card-checklist"></i> Cheatsheet</a></li>
+                    </ul>
+                </nav>
 
-            <div class="nav-right-cluster">
-                <div class="nav-user-stats">
-                    <div class="stat-pill" title="Modul yang diselesaikan">
-                        <i class="bi bi-mortarboard-fill text-warning"></i>
-                        <span>Modul: <strong id="stat-completed-modules">0</strong>/7</span>
-                    </div>
-                    <div class="stat-pill" title="Tugas lab diselesaikan">
-                        <i class="bi bi-check2-circle text-success"></i>
-                        <span>Tugas: <strong id="stat-completed-tasks">0</strong></span>
-                    </div>
-                    <div class="stat-pill" title="Total Poin Belajar">
-                        <i class="bi bi-stars text-primary"></i>
-                        <span>Poin: <strong id="stat-total-points">0</strong></span>
-                    </div>
-                </div>
-
-                <div class="nav-user-auth">
-                    <a href="/profile" class="user-pill" title="Buka Profil Saya">
-                        <div class="user-avatar-sm">{{ current_user.fullname[:1]|upper }}</div>
-                        <div class="user-pill-text">
-                            <span class="user-pill-name">{{ current_user.fullname.split(' ')[0] }}</span>
-                            <span class="user-pill-role badge-role-{{ current_user.role }}">{{ 'Guru' if current_user.role == 'guru' else 'Siswa' }}</span>
+                <div class="nav-right-cluster">
+                    <div class="nav-user-stats">
+                        <div class="stat-pill" title="Total Siswa Terdaftar di Kelas">
+                            <i class="bi bi-people-fill text-info"></i>
+                            <span>Siswa: <strong>{{ class_stats.total_students if class_stats else 0 }}</strong></span>
                         </div>
-                    </a>
-                    <a href="/logout" class="btn-logout" title="Keluar / Logout">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </a>
+                        <div class="stat-pill" title="Siswa yang Sudah Lulus Sertifikasi">
+                            <i class="bi bi-award-fill text-warning"></i>
+                            <span>Lulus: <strong>{{ class_stats.certified_count if class_stats else 0 }}</strong></span>
+                        </div>
+                        <div class="stat-pill" title="Rata-rata Nilai Kuis Kelas">
+                            <i class="bi bi-graph-up text-success"></i>
+                            <span>Rata-rata: <strong>{{ class_stats.avg_score if class_stats else 0 }}%</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="nav-user-auth">
+                        <a href="/profile" class="user-pill" title="Profil Instruktur">
+                            <div class="user-avatar-sm" style="background: linear-gradient(135deg, #f0883e, #d29922);">{{ current_user.fullname[:1]|upper }}</div>
+                            <div class="user-pill-text">
+                                <span class="user-pill-name">{{ current_user.fullname.split(' ')[0] }}</span>
+                                <span class="user-pill-role badge-role-guru">Guru</span>
+                            </div>
+                        </a>
+                        <a href="/logout" class="btn-logout" title="Keluar / Logout">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
+
+                {% else %}
+                <!-- ================= NAVBAR SISWA ================= -->
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}"><i class="bi bi-house-door"></i> Beranda</a></li>
+                        <li><a href="/learn" class="nav-link {% if request.path == '/learn' %}active{% endif %}"><i class="bi bi-book"></i> Modul Belajar</a></li>
+                        <li><a href="/lab" class="nav-link {% if request.path == '/lab' %}active{% endif %}"><i class="bi bi-terminal"></i> Virtual Lab</a></li>
+                        <li><a href="/challenges" class="nav-link {% if request.path == '/challenges' %}active{% endif %}"><i class="bi bi-flag"></i> Tantangan CTF</a></li>
+                        <li><a href="/cheatsheet" class="nav-link {% if request.path == '/cheatsheet' %}active{% endif %}"><i class="bi bi-card-checklist"></i> Cheatsheet</a></li>
+                        <li><a href="/certificate" class="nav-link {% if request.path == '/certificate' %}active{% endif %}"><i class="bi bi-patch-check"></i> Sertifikat Saya</a></li>
+                    </ul>
+                </nav>
+
+                <div class="nav-right-cluster">
+                    <div class="nav-user-stats">
+                        <div class="stat-pill" title="Modul yang diselesaikan">
+                            <i class="bi bi-mortarboard-fill text-warning"></i>
+                            <span>Modul: <strong id="stat-completed-modules">0</strong>/7</span>
+                        </div>
+                        <div class="stat-pill" title="Tugas lab diselesaikan">
+                            <i class="bi bi-check2-circle text-success"></i>
+                            <span>Tugas: <strong id="stat-completed-tasks">0</strong></span>
+                        </div>
+                        <div class="stat-pill" title="Total Poin Belajar">
+                            <i class="bi bi-stars text-primary"></i>
+                            <span>Poin: <strong id="stat-total-points">0</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="nav-user-auth">
+                        <a href="/profile" class="user-pill" title="Buka Profil Saya">
+                            <div class="user-avatar-sm">{{ current_user.fullname[:1]|upper }}</div>
+                            <div class="user-pill-text">
+                                <span class="user-pill-name">{{ current_user.fullname.split(' ')[0] }}</span>
+                                <span class="user-pill-role badge-role-siswa">Siswa</span>
+                            </div>
+                        </a>
+                        <a href="/logout" class="btn-logout" title="Keluar / Logout">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
             {% else %}
             <div class="nav-right-cluster">
                 <div class="nav-auth-buttons">
@@ -107,7 +149,7 @@
 
     <!-- Footer -->
     <footer class="lms-footer">
-        <p>© 2026 <strong>LinuxAcademy Indonesia</strong> — Platform LMS & Virtual Lab Linux Interaktif Terbuka.</p>
+        <p>© 2026 <strong>Adiningtyas Yuli Purwanto,S.Kom</strong> — Platform LMS & Virtual Lab Linux Interaktif Terbuka.</p>
         <p style="margin-top: 4px; font-size: 12px; color: #6e7681;">Dibuat untuk praktikum sistem operasi Linux dengan simulator Virtual File System (VFS) in-browser.</p>
     </footer>
 
