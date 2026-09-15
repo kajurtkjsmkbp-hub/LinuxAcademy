@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ current_module.title }} — LMS Linux Indonesia{% endblock %}
+
+{% block content %}
+<div class="learn-split-container">
+    <!-- Left Column: Lesson Content, Lab Tasks, & Quiz -->
+    <div class="lesson-column">
+        <div class="lesson-header">
+            <div>
+                <span class="module-number">MODUL {{ current_module.order }} / {{ modules|length }}</span>
+                <h2 style="font-size: 17px; font-weight: 700; margin-top: 2px;">{{ current_module.title }}</h2>
+            </div>
+            <div>
+                <select class="lesson-selector-dropdown" onchange="window.location.href='/learn?module=' + this.value;">
+                    {% for mod in modules %}
+                    <option value="{{ mod.id }}" {% if mod.id == current_module.id %}selected{% endif %}>
+                        Modul {{ mod.order }}: {{ mod.title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="lesson-content-scroll">
+            <!-- Progress Tracker -->
+            <div class="lesson-progress-wrap">
+                <div class="progress-info">
+                    <span><i class="bi bi-pie-chart-fill text-success"></i> Kemajuan Modul Ini</span>
+                    <span id="module-progress-text">0% Selesai</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-bar-fill" id="module-progress-bar"></div>
+                </div>
+            </div>
+
+            <!-- Reading Material Sections -->
+            {% for sec in current_module.sections %}
+            <article class="article-section">
+                <h3>{{ sec.title }}</h3>
+                <div class="article-body">
+                    {{ sec.content|safe }}
+                </div>
+            </article>
+            {% endfor %}
+
+            <!-- Lab Tasks Checklist -->
+            <div class="lab-tasks-container">
+                <div class="tasks-title">
+                    <i class="bi bi-list-check"></i>
+                    <span>Tugas Praktik Mandiri (Lab Tasks)</span>
+                </div>
+                <p style="font-size: 13px; color: #8b949e; margin-bottom: 12px;">
+                    Jalankan instruksi berikut di terminal sebelah kanan. Sistem akan memverifikasi keberhasilan Anda secara otomatis!
+                </p>
+                <div id="lab-tasks-list">
+                    <!-- Rendered by lms.js -->
+                </div>
+                <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-secondary btn-sm" onclick="window.lms.checkTasks();">
+                        <i class="bi bi-arrow-repeat"></i> Periksa Status Tugas Sekarang
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="module-quiz-container" id="module-quiz-container">
+                <!-- Rendered dynamically by lms.js -->
+            </div>
+
+            <!-- Next Module Navigation Button -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                {% if current_module.order > 1 %}
+                <a href="/learn?module=modul-{{ current_module.order - 1 }}" class="btn btn-secondary">
+                    <i class="bi bi-chevron-left"></i> Modul Sebelumnya
+                </a>
+                {% else %}
+                <div></div>
+                {% endif %}
+
+                {% if current_module.order < modules|length %}
+                <a href="/learn?module=modul-{{ current_module.order + 1 }}" class="btn btn-primary">
+                    Modul Selanjutnya (Modul {{ current_module.order + 1 }}) <i class="bi bi-chevron-right"></i>
+                </a>
+                {% else %}
+                <a href="/certificate" class="btn btn-primary" style="background-color: var(--accent-yellow); color: #000;">
+                    <i class="bi bi-award-fill"></i> Selesai! Klaim Sertifikat Anda
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Interactive Linux Terminal -->
+    <div style="display: flex; flex-direction: column; height: 100%;">
+        <div id="terminal-container" style="flex: 1; height: 100%;">
+            <!-- Terminal UI injected by terminal.js -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Terminal
+        const term = window.initTerminal('terminal-container');
+        
+        // Pass current module data to LMS controller
+        const currentModuleData = {{ current_module|tojson }};
+        window.lms.setCurrentModule(currentModuleData);
+    });
+</script>
+{% endblock %}

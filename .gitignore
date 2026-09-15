@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite Database (dibuat otomatis oleh db.init_db())
+*.db
+*.sqlite3
+
+# Environment
+.env
+venv/
+.venv/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

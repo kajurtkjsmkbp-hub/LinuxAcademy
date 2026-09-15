@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Guru & Monitoring Kelas — LinuxAcademy{% endblock %}
+
+{% block content %}
+<div class="teacher-dashboard-wrap">
+    <!-- Header Section -->
+    <div class="teacher-header-banner">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span class="task-badge badge-pending" style="color: #f0883e; border-color: rgba(240, 136, 62, 0.4); font-size: 13px;">
+                    <i class="bi bi-person-workspace"></i> Portal Instruktur
+                </span>
+                <span style="color: #8b949e; font-size: 13px;">Tahun Ajaran 2026</span>
+            </div>
+            <h1 style="font-size: 26px; font-weight: 800;">Panel Monitoring & Rekapitulasi Siswa</h1>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+                Pantau perkembangan modul, verifikasi tugas lab, evaluasi kuis, dan kelulusan sertifikasi siswa secara real-time.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-secondary" onclick="exportStudentsCSV()">
+                <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i> Ekspor Nilai (CSV)
+            </button>
+            <button class="btn btn-primary" onclick="window.location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Perbarui Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Overview Statistics Cards -->
+    <div class="dashboard-stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon icon-users"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Total Siswa Terdaftar</div>
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-sub">Akun siswa aktif di kelas</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-cert-stat"><i class="bi bi-award-fill"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Siswa Lulus Sertifikasi</div>
+                <div class="stat-value">{{ certified_count }}</div>
+                <div class="stat-sub">Menuntaskan 7 modul & kuis >= 70%</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-points"><i class="bi bi-stars"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Rata-rata Poin Kelas</div>
+                <div class="stat-value">{{ avg_class_points }}</div>
+                <div class="stat-sub">Dari akumulasi lab & CTF</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-curriculum"><i class="bi bi-journal-bookmark-fill"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Total Modul Belajar</div>
+                <div class="stat-value">{{ modules|length }}</div>
+                <div class="stat-sub">Modul teori + virtual lab</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Table Section -->
+    <div class="dashboard-table-card">
+        <div class="table-card-header">
+            <div>
+                <h3 style="font-size: 18px; font-weight: 700;"><i class="bi bi-table text-primary"></i> Daftar Progres Siswa</h3>
+                <p style="font-size: 13px; color: #8b949e; margin-top: 2px;">Data diperbarui otomatis dari sinkronisasi virtual lab siswa.</p>
+            </div>
+
+            <!-- Search & Filter -->
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <input type="text" id="student-search-input" class="search-input" style="width: 260px; padding: 6px 12px; font-size: 13px;" placeholder="🔍 Cari nama atau username..." oninput="filterStudents()">
+                
+                <select id="student-status-filter" class="lesson-selector-dropdown" style="padding: 6px 12px; font-size: 13px;" onchange="filterStudents()">
+                    <option value="all">Semua Status</option>
+                    <option value="certified">Sudah Lulus Sertifikat</option>
+                    <option value="in_progress">Sedang Berjalan</option>
+                </select>
+            </div>
+        </div>
+
+        {% if students|length > 0 %}
+        <div style="overflow-x: auto;">
+            <table class="teacher-table" id="students-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Nama Siswa</th>
+                        <th style="width: 20%;">Kemajuan Modul</th>
+                        <th style="width: 12%;">Tugas Lab</th>
+                        <th style="width: 12%;">Misi CTF</th>
+                        <th style="width: 15%;">Rata-rata Kuis</th>
+                        <th style="width: 10%;">Total Poin</th>
+                        <th style="width: 16%;">Status Sertifikasi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr class="student-row" data-name="{{ s.fullname|lower }}" data-username="{{ s.username|lower }}" data-certified="{{ 'true' if s.certified else 'false' }}">
+                        <td>
+                            <div class="student-profile-cell">
+                                <div class="student-avatar">{{ s.fullname[:1]|upper }}</div>
+                                <div>
+                                    <div class="student-name">{{ s.fullname }}</div>
+                                    <div class="student-username">@{{ s.username }} {% if s.email %}• {{ s.email }}{% endif %}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="progress-track" style="flex: 1; height: 8px;">
+                                    <div class="progress-bar-fill" style="width: {{ (s.completed_modules_count / 7 * 100)|round }}%;"></div>
+                                </div>
+                                <span style="font-size: 12px; font-weight: 600; color: #c9d1d9;">{{ s.completed_modules_count }}/7</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="pill-stat"><i class="bi bi-check2-circle text-success"></i> {{ s.completed_tasks_count }} Selesai</span>
+                        </td>
+                        <td>
+                            <span class="pill-stat"><i class="bi bi-flag-fill text-warning"></i> {{ s.solved_challenges_count }} Selesai</span>
+                        </td>
+                        <td>
+                            {% if s.avg_score >= 70 %}
+                            <span class="task-badge badge-done" style="font-size: 12px;">
+                                <i class="bi bi-check-circle"></i> {{ s.avg_score }}% (Lulus)
+                            </span>
+                            {% elif s.avg_score > 0 %}
+                            <span class="task-badge badge-pending" style="color: #f0883e; border-color: rgba(240, 136, 62, 0.4); font-size: 12px;">
+                                <i class="bi bi-exclamation-triangle"></i> {{ s.avg_score }}%
+                            </span>
+                            {% else %}
+                            <span style="color: #6e7681; font-size: 12px;">Belum Kuis</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong style="color: var(--accent-yellow); font-size: 14px;">{{ s.total_points }}</strong>
+                        </td>
+                        <td>
+                            {% if s.certified %}
+                            <span class="task-badge badge-done" style="background: rgba(46, 160, 67, 0.15); color: #3fb950; border-color: #3fb950;">
+                                <i class="bi bi-patch-check-fill"></i> Terverifikasi
+                            </span>
+                            {% else %}
+                            <span class="task-badge badge-pending" style="font-size: 12px; color: #8b949e;">
+                                <i class="bi bi-hourglass-split"></i> Dalam Proses
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #8b949e;">
+            <i class="bi bi-people" style="font-size: 40px; display: block; margin-bottom: 12px;"></i>
+            Belum ada siswa yang terdaftar di kelas. Ajak siswa mendaftar melalui halaman registrasi.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function filterStudents() {
+        const query = document.getElementById('student-search-input').value.toLowerCase().trim();
+        const statusFilter = document.getElementById('student-status-filter').value;
+        const rows = document.querySelectorAll('.student-row');
+
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name') || '';
+            const user = row.getAttribute('data-username') || '';
+            const isCertified = row.getAttribute('data-certified') === 'true';
+
+            let matchesSearch = name.includes(query) || user.includes(query);
+            let matchesStatus = true;
+
+            if (statusFilter === 'certified') {
+                matchesStatus = isCertified;
+            } else if (statusFilter === 'in_progress') {
+                matchesStatus = !isCertified;
+            }
+
+            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    function exportStudentsCSV() {
+        const rows = document.querySelectorAll('#students-table tbody tr');
+        let csvContent = "data:text/csv;charset=utf-8,Nama Siswa,Username,Email,Modul Selesai,Tugas Lab,CTF Selesai,Rata-rata Skor Kuis,Total Poin,Status Sertifikat\n";
+
+        const studentsData = {{ students|tojson }};
+        studentsData.forEach(s => {
+            const certStatus = s.certified ? "Terverifikasi" : "Dalam Proses";
+            const row = `"${s.fullname}","${s.username}","${s.email || '-'}","${s.completed_modules_count}/7","${s.completed_tasks_count}","${s.solved_challenges_count}","${s.avg_score}%","${s.total_points}","${certStatus}"`;
+            csvContent += row + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Rekap_Nilai_Linux_LMS_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+{% endblock %}

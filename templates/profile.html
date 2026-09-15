@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil Saya — LinuxAcademy LMS{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto; padding-bottom: 40px;">
+    <!-- Profile Header Card -->
+    <div class="profile-header-card">
+        <div class="profile-avatar-large">
+            {{ user.fullname[:1]|upper }}
+        </div>
+        <div class="profile-info-wrap">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <h1 style="font-size: 24px; font-weight: 800; margin: 0;">{{ user.fullname }}</h1>
+                {% if user.role == 'guru' %}
+                <span class="task-badge badge-pending" style="color: #f0883e; border-color: rgba(240, 136, 62, 0.4);">
+                    <i class="bi bi-person-workspace"></i> Instruktur / Guru
+                </span>
+                {% else %}
+                <span class="task-badge badge-done" style="color: #58a6ff; border-color: rgba(88, 166, 255, 0.4);">
+                    <i class="bi bi-mortarboard-fill"></i> Siswa Terdaftar
+                </span>
+                {% endif %}
+            </div>
+            <div style="color: #8b949e; font-size: 13.5px; margin-top: 4px;">
+                <span>@{{ user.username }}</span>
+                {% if user.email %}<span>• {{ user.email }}</span>{% endif %}
+                <span>• Bergabung: {{ user.created_at[:10] }}</span>
+            </div>
+        </div>
+
+        <div style="margin-left: auto; display: flex; gap: 10px;">
+            {% if user.role == 'guru' %}
+            <a href="/teacher/dashboard" class="btn btn-primary">
+                <i class="bi bi-speedometer2"></i> Buka Dashboard Guru
+            </a>
+            {% else %}
+            <a href="/learn" class="btn btn-primary">
+                <i class="bi bi-play-circle-fill"></i> Lanjutkan Belajar
+            </a>
+            {% endif %}
+            <a href="/logout" class="btn btn-secondary">
+                <i class="bi bi-box-arrow-right"></i> Keluar
+            </a>
+        </div>
+    </div>
+
+    {% if user.role == 'siswa' and progress %}
+    <!-- Stats Metrics -->
+    <div class="dashboard-stats-grid" style="margin-bottom: 24px;">
+        <div class="stat-card">
+            <div class="stat-icon icon-curriculum"><i class="bi bi-journal-check"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Modul Selesai</div>
+                <div class="stat-value">{{ progress.completed_modules|length }} / 7</div>
+                <div class="stat-sub">Kurikulum FHS & Shell</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-users"><i class="bi bi-check2-all"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Tugas Lab Selesai</div>
+                <div class="stat-value">{{ progress.completed_tasks|length }}</div>
+                <div class="stat-sub">Praktik verifikasi VFS</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-cert-stat"><i class="bi bi-flag-fill"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Misi CTF Terpecahkan</div>
+                <div class="stat-value">{{ progress.solved_challenges|length }}</div>
+                <div class="stat-sub">Investigasi sistem & log</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-points"><i class="bi bi-stars"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Total Poin Belajar</div>
+                <div class="stat-value">{{ progress.total_points }}</div>
+                <div class="stat-sub">Poin prestasi siswa</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modules Progress Breakdown -->
+    <div class="dashboard-table-card" style="margin-bottom: 24px;">
+        <div class="table-card-header">
+            <h3 style="font-size: 16px; font-weight: 700;"><i class="bi bi-list-task text-primary"></i> Status Pengerjaan Modul & Skor Kuis</h3>
+        </div>
+        <div style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for mod in modules %}
+                {% set is_done = mod.id in progress.completed_modules %}
+                {% set q_score = progress.quiz_scores.get(mod.id) %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #0d1117; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-weight: 700; font-size: 13px; color: #8b949e; width: 65px;">Modul {{ mod.order }}</span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px; color: #f0f6fc;">{{ mod.title }}</div>
+                            <div style="font-size: 12px; color: #8b949e;">{{ mod.summary }}</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        {% if q_score is not none %}
+                        <span style="font-size: 13px; font-weight: 600; color: {{ '#3fb950' if q_score >= 70 else '#f0883e' }};">
+                            Skor Kuis: {{ q_score }}%
+                        </span>
+                        {% else %}
+                        <span style="font-size: 12px; color: #6e7681;">Kuis Belum Diambil</span>
+                        {% endif %}
+
+                        {% if is_done %}
+                        <span class="task-badge badge-done"><i class="bi bi-check-circle-fill"></i> Tuntas</span>
+                        {% else %}
+                        <a href="/learn?module={{ mod.id }}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 4px 10px;">
+                            Pelajari <i class="bi bi-chevron-right"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificate Claim Box -->
+    <div style="background: linear-gradient(135deg, #161b22, #0d1117); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: var(--accent-yellow);">
+                <i class="bi bi-patch-check-fill"></i> Sertifikat Kelulusan Resmi
+            </div>
+            <p style="font-size: 13.5px; color: #8b949e; margin-top: 4px; max-width: 540px;">
+                Sertifikat kelulusan digital akan otomatis diterbitkan atas nama <strong>{{ user.fullname }}</strong> setelah Anda menyelesaikan seluruh modul dan kuis evaluasi dengan skor minimal 70%.
+            </p>
+        </div>
+        <a href="/certificate" class="btn btn-primary" style="background: var(--accent-yellow); color: #000;">
+            <i class="bi bi-award-fill"></i> Buka Halaman Sertifikat
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

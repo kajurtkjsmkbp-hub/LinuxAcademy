@@ -1,0 +1,128 @@
+/**
+ * Nano Editor Modal Stylesheet
+ * Replicates the GNU nano terminal interface.
+ */
+
+.nano-modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.nano-modal-container.hidden {
+    display: none !important;
+}
+
+.nano-window {
+    width: 95%;
+    max-width: 980px;
+    height: 85vh;
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    overflow: hidden;
+}
+
+.nano-header {
+    background-color: #f0f6fc;
+    color: #0d1117;
+    padding: 5px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 12.5px;
+}
+
+.nano-brand {
+    color: #0d1117;
+}
+
+.nano-filename {
+    color: #0969da;
+}
+
+.nano-modified {
+    color: #cf222e;
+    font-style: italic;
+}
+
+.nano-body {
+    flex: 1;
+    display: flex;
+    padding: 10px;
+    background-color: #0c1017;
+}
+
+#nano-textarea {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #f0f6fc;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: none;
+    white-space: pre;
+    tab-size: 4;
+}
+
+.nano-status {
+    background-color: #161b22;
+    color: #58a6ff;
+    padding: 6px 14px;
+    font-size: 12px;
+    border-top: 1px solid #30363d;
+    border-bottom: 1px solid #30363d;
+}
+
+.nano-shortcuts {
+    background-color: #0d1117;
+    display: flex;
+    gap: 8px;
+    padding: 8px 14px;
+    flex-wrap: wrap;
+}
+
+.nano-btn {
+    background-color: #21262d;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease;
+}
+
+.nano-btn:hover {
+    background-color: #30363d;
+    color: #58a6ff;
+}
+
+.shortcut-key {
+    background-color: #f0f6fc;
+    color: #0d1117;
+    font-weight: bold;
+    padding: 1px 4px;
+    border-radius: 2px;
+}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Kamus & Cheatsheet Perintah Linux — LinuxAcademy{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <h1 style="font-size: 28px; font-weight: 800;"><i class="bi bi-card-checklist text-primary"></i> Cheatsheet Perintah Esensial Linux</h1>
+    <p style="color: var(--text-secondary); font-size: 14px;">
+        Kompilasi referensi sintaks perintah Linux harian beserta contoh penggunaannya. Gunakan kolom pencarian untuk menemukan perintah secara instan.
+    </p>
+</div>
+
+<!-- Instant Search Bar -->
+<div class="search-box-wrap">
+    <input type="text" id="cheat-search" class="search-input" placeholder="🔍 Ketik perintah (misal: grep, chmod, ls, kill, ps)..." oninput="filterCheatsheet()">
+</div>
+
+<div id="cheatsheet-content">
+    {% for cat in cheatsheet %}
+    <div class="cheat-category-block" data-category="{{ cat.category }}">
+        <h3 class="cheat-cat-title"><i class="bi bi-folder2-open"></i> {{ cat.category }}</h3>
+        <table class="cheat-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Perintah</th>
+                    <th style="width: 30%;">Sintaks & Opsi Umum</th>
+                    <th style="width: 45%;">Deskripsi & Kegunaan</th>
+                    <th style="width: 10%;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cat.commands %}
+                <tr class="cheat-row" data-cmd="{{ item.cmd }}" data-desc="{{ item.desc }}">
+                    <td><strong style="color: #58a6ff; font-family: var(--font-mono); font-size: 14px;">{{ item.cmd }}</strong></td>
+                    <td><code style="background: #21262d; color: #79c0ff; padding: 2px 6px; border-radius: 4px;">{{ item.syntax }}</code></td>
+                    <td style="color: #c9d1d9;">{{ item.desc }}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px;" onclick="copySyntax('{{ item.syntax }}')">
+                            <i class="bi bi-clipboard"></i> Salin
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function copySyntax(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            window.lms.showToast('Tersalin! 📋', `Sintaks '${text}' berhasil disalin ke clipboard.`);
+        });
+    }
+
+    function filterCheatsheet() {
+        const query = document.getElementById('cheat-search').value.toLowerCase().trim();
+        const categories = document.querySelectorAll('.cheat-category-block');
+
+        categories.forEach(cat => {
+            const rows = cat.querySelectorAll('.cheat-row');
+            let visibleRows = 0;
+
+            rows.forEach(row => {
+                const cmd = (row.getAttribute('data-cmd') || '').toLowerCase();
+                const desc = (row.getAttribute('data-desc') || '').toLowerCase();
+
+                if (cmd.includes(query) || desc.includes(query)) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            cat.style.display = visibleRows > 0 ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

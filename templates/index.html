@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}LinuxAcademy — LMS Linux & Virtual Lab Interaktif{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-badge">
+        <i class="bi bi-cpu-fill"></i> Simulator Terminal Linux Ubuntu 24.04 LTS In-Browser
+    </div>
+    <h1 class="hero-title">Kuasai Linux Praktis Tanpa Perlu Install Mesin Virtual</h1>
+    <p class="hero-subtitle">
+        Platform Learning Management System (LMS) sistem operasi Linux pertama dengan Virtual Lab interaktif langsung di browser Anda. Pelajari teori, jalankan perintah secara live, selesaikan misi praktik, dan raih sertifikat resmi.
+    </p>
+    <div class="hero-actions">
+        <a href="/learn" class="btn btn-primary"><i class="bi bi-play-circle-fill"></i> Mulai Belajar Modul 1</a>
+        <a href="/lab" class="btn btn-secondary"><i class="bi bi-terminal-fill"></i> Buka Virtual Lab Bebas</a>
+        <a href="/challenges" class="btn btn-outline"><i class="bi bi-flag-fill"></i> Uji Skill di CTF Lab</a>
+    </div>
+</div>
+
+<!-- Features Banner -->
+<div class="features-banner">
+    <div class="feature-card">
+        <div class="feature-icon icon-term"><i class="bi bi-terminal"></i></div>
+        <h3>Terminal Emulator Asli</h3>
+        <p>Dilengkapi Virtual File System (VFS) in-memory lengkap dengan hak akses, user system, proses, pipes, redirection, hingga editor nano.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon icon-lab"><i class="bi bi-check-all"></i></div>
+        <h3>Verifikasi Tugas Otomatis</h3>
+        <p>Setiap modul memiliki lab checklist. Sistem secara otomatis mendeteksi perubahan file dan status terminal untuk memberikan verifikasi instan.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon icon-cert"><i class="bi bi-award-fill"></i></div>
+        <h3>Sertifikat Kelulusan Resmi</h3>
+        <p>Selesaikan seluruh modul dan kuis evaluasi dengan skor kelulusan minimal 70% untuk mengklaim sertifikat digital resmi dengan nomor verifikasi unik.</p>
+    </div>
+</div>
+
+<!-- Curriculum Overview -->
+<div class="section-heading">
+    <div>
+        <h2><i class="bi bi-collection-fill text-primary"></i> Kurikulum Modul Pembelajaran</h2>
+        <p>7 Modul bertahap dirancang dari tingkat dasar hingga otomasi shell scripting mahir.</p>
+    </div>
+    <div>
+        <a href="/learn" class="btn btn-secondary"><i class="bi bi-arrow-right-circle"></i> Lihat Mode Pembelajaran Terpandu</a>
+    </div>
+</div>
+
+<div class="modules-grid">
+    {% for mod in modules %}
+    <div class="module-card">
+        <div>
+            <div class="module-header">
+                <span class="module-number">MODUL {{ mod.order }}</span>
+                <div class="module-meta">
+                    <span><i class="bi bi-clock"></i> {{ mod.duration }}</span>
+                    <span>•</span>
+                    <span class="text-info">{{ mod.level }}</span>
+                </div>
+            </div>
+            <h3 class="module-title">{{ mod.title }}</h3>
+            <p class="module-desc">{{ mod.summary }}</p>
+        </div>
+        <div class="module-footer">
+            <span style="font-size: 13px; color: #8b949e;">
+                <i class="bi bi-list-task"></i> {{ mod.lab_tasks|length }} Tugas Lab
+            </span>
+            <a href="/learn?module={{ mod.id }}" class="btn btn-secondary btn-sm" style="padding: 6px 14px; font-size: 13px;">
+                Mulai Modul <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Hands-on Challenges Highlight -->
+<div class="section-heading" style="margin-top: 24px;">
+    <div>
+        <h2><i class="bi bi-shield-lock-fill text-warning"></i> Tantangan Praktik Mandiri (CTF Lab)</h2>
+        <p>Uji ketangkasan investigasi sysadmin, perburuan log, pemulihan izin, dan perburuan proses liar.</p>
+    </div>
+    <div>
+        <a href="/challenges" class="btn btn-outline"><i class="bi bi-trophy"></i> Buka Halaman Tantangan Lengkap</a>
+    </div>
+</div>
+
+<div class="modules-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+    {% for c in challenges[:3] %}
+    <div class="module-card" style="border-left: 4px solid var(--accent-yellow);">
+        <div>
+            <div class="module-header">
+                <span class="task-badge badge-pending" style="color: #d29922; border-color: rgba(210,153,34,0.4);">
+                    <i class="bi bi-lightning-charge-fill"></i> {{ c.points }} POIN
+                </span>
+                <span class="module-meta">{{ c.difficulty }}</span>
+            </div>
+            <h3 class="module-title" style="font-size: 16px;">{{ c.title }}</h3>
+            <p class="module-desc">{{ c.description|safe }}</p>
+        </div>
+        <div class="module-footer">
+            <span style="font-size: 12px; color: #8b949e;">{{ c.category }}</span>
+            <a href="/challenges" class="btn btn-secondary btn-sm">Kerjakan <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

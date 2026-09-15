@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Masuk ke Akun — LinuxAcademy LMS{% endblock %}
+
+{% block content %}
+<div class="auth-page-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <h2 class="auth-title">Masuk ke LinuxAcademy</h2>
+            <p class="auth-subtitle">Akses modul pembelajaran, virtual lab, dan pantau progres belajar Anda.</p>
+        </div>
+
+        <form method="POST" action="/login" class="auth-form">
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username atau Email</label>
+                <div class="input-with-icon">
+                    <i class="bi bi-person-fill"></i>
+                    <input type="text" id="username" name="username" class="form-input" placeholder="contoh: siswa atau guru" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Kata Sandi</label>
+                <div class="input-with-icon">
+                    <i class="bi bi-key-fill"></i>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Masukkan kata sandi Anda" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="padding: 10px; font-size: 15px;">
+                <i class="bi bi-box-arrow-in-right"></i> Masuk Sekarang
+            </button>
+        </form>
+
+        <!-- Quick Demo Switcher -->
+        <div class="demo-accounts-box">
+            <div class="demo-title"><i class="bi bi-lightning-charge-fill text-warning"></i> Akun Uji Coba Cepat (Klik untuk Isi Otomatis):</div>
+            <div class="demo-buttons-grid">
+                <button type="button" class="btn-demo" onclick="fillCredentials('guru', 'guru123')">
+                    <i class="bi bi-person-workspace text-warning"></i>
+                    <div>
+                        <strong>Login Guru / Instruktur</strong>
+                        <span>User: <code>guru</code> | Pass: <code>guru123</code></span>
+                    </div>
+                </button>
+                <button type="button" class="btn-demo" onclick="fillCredentials('siswa', 'siswa123')">
+                    <i class="bi bi-mortarboard-fill text-info"></i>
+                    <div>
+                        <strong>Login Siswa Demo</strong>
+                        <span>User: <code>siswa</code> | Pass: <code>siswa123</code></span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <div class="auth-footer">
+            Belum memiliki akun? <a href="/register" class="auth-link">Daftar Akun Baru</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function fillCredentials(user, pass) {
+        document.getElementById('username').value = user;
+        document.getElementById('password').value = pass;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Sertifikat Kelulusan — LinuxAcademy{% endblock %}
+
+{% block extra_head %}
+<style>
+@media print {
+    .lms-navbar, .lms-footer, .no-print {
+        display: none !important;
+    }
+    body, .main-wrapper {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .certificate-preview-box {
+        box-shadow: none !important;
+        border: 8px solid #24292f !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        page-break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="no-print" style="margin-bottom: 24px;">
+    <h1 style="font-size: 28px; font-weight: 800;"><i class="bi bi-patch-check-fill text-warning"></i> Sertifikat Kelulusan Linux Virtual Lab</h1>
+    <p style="color: var(--text-secondary); font-size: 14px;">
+        Klaim dan cetak sertifikat resmi Anda setelah menyelesaikan pembelajaran dan kuis evaluasi.
+    </p>
+</div>
+
+<!-- Name Customizer Box -->
+<div class="no-print" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <label for="cert-name-input" style="font-weight: 600; font-size: 14px;">Nama Lengkap di Sertifikat:</label>
+        <input type="text" id="cert-name-input" class="search-input" style="width: 260px; padding: 6px 12px;" placeholder="Nama Lengkap Anda">
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" onclick="updateCertPreview()"><i class="bi bi-arrow-clockwise"></i> Perbarui Nama</button>
+        <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer-fill"></i> Cetak / Simpan PDF</button>
+    </div>
+</div>
+
+<!-- Certificate Visual Element -->
+<div class="certificate-preview-box" id="cert-printable">
+    <div class="cert-inner-border">
+        <div class="cert-logo">
+            <i class="bi bi-ubuntu"></i>
+        </div>
+        <div class="cert-title">SERTIFIKAT KELULUSAN</div>
+        <div class="cert-sub">CERTIFICATE OF COMPLETION & LINUX PROFICIENCY</div>
+
+        <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Diberikan dengan bangga kepada:</p>
+        <div class="cert-recipient" id="cert-display-name">Pelajar Linux Indonesia</div>
+
+        <div class="cert-body">
+            Telah berhasil menyelesaikan seluruh kurikulum pembelajaran <strong>Sistem Operasi Linux, Arsitektur FHS, Manajemen Izin Akses (Permissions), Piping & Redirection, Monitoring Proses, Jaringan, dan Bash Scripting</strong> serta lulus evaluasi praktik pada platform <strong>LinuxAcademy Virtual Lab</strong>.
+        </div>
+
+        <div class="cert-footer-meta">
+            <div style="text-align: left;">
+                <div><strong>Nomor Sertifikat:</strong> <span id="cert-display-id">LMS-LNX-2026-78421</span></div>
+                <div><strong>Tanggal Terbit:</strong> <span id="cert-display-date">15 September 2026</span></div>
+                <div><strong>Status:</strong> <span style="color: #2da44e; font-weight: bold;">Terverifikasi Resmi</span></div>
+            </div>
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: #fff8e1; border: 2px solid #b18d36; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px auto; color: #b18d36; font-size: 24px;">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                <div style="font-size: 11px; font-weight: bold; color: #b18d36; text-transform: uppercase;">Official Certified</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="border-bottom: 1px solid #333; width: 140px; margin-left: auto; margin-bottom: 4px;"></div>
+                <div style="font-weight: bold;">Instruktur Linux Lab</div>
+                <div>LinuxAcademy Indonesia</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function updateCertPreview() {
+        const inputName = document.getElementById('cert-name-input').value.trim();
+        const finalName = inputName || 'Pelajar Linux Indonesia';
+        document.getElementById('cert-display-name').textContent = finalName;
+        
+        window.lms.state.studentName = finalName;
+        window.lms.saveState();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        let savedName = (window.currentUser && window.currentUser.fullname) 
+            ? window.currentUser.fullname 
+            : (window.lms.state.studentName || 'Pelajar Linux Indonesia');
+
+        document.getElementById('cert-name-input').value = savedName;
+        document.getElementById('cert-display-name').textContent = savedName;
+
+        // Generate persistent date & ID
+        const today = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('cert-display-date').textContent = today.toLocaleDateString('id-ID', options);
+
+        let randomId = localStorage.getItem('linux_lms_cert_id');
+        if (!randomId) {
+            randomId = 'LMS-LNX-' + today.getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+            localStorage.setItem('linux_lms_cert_id', randomId);
+        }
+        document.getElementById('cert-display-id').textContent = randomId;
+    });
+</script>
+{% endblock %}

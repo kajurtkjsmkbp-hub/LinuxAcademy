@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Virtual Linux Lab Sandbox — LinuxAcademy{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 style="font-size: 26px; font-weight: 800;"><i class="bi bi-terminal-split text-success"></i> Virtual Linux Lab Sandbox</h1>
+            <p style="color: var(--text-secondary); font-size: 14px;">Lingkungan terminal Linux penuh tanpa batas. Eksplorasi perintah, edit file, dan uji skenario praktik.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <label for="scenario-select" style="font-size: 13px; color: #8b949e;">Pilih Skenario:</label>
+            <select id="scenario-select" class="lesson-selector-dropdown" onchange="switchScenario(this.value)">
+                {% for s in scenarios %}
+                <option value="{{ s.id }}" {% if s.id == current_scenario %}selected{% endif %}>
+                    {{ s.name }} ({{ s.badge }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Scenario Details Banner -->
+<div class="callout" id="scenario-info-banner" style="margin-top: 0; margin-bottom: 16px; background-color: var(--bg-card); border-left-color: var(--accent-green);">
+    <div class="callout-title" id="scenario-info-title"><i class="bi bi-info-circle"></i> Skenario Aktif</div>
+    <div id="scenario-info-desc" style="font-size: 13.5px; color: #c9d1d9;">
+        Lingkungan virtual Linux standar dengan direktori pengguna, struktur FHS lengkap, dan file sistem umum.
+    </div>
+</div>
+
+<!-- Fullsize Terminal Window -->
+<div style="height: calc(100vh - 270px); min-height: 540px; margin-bottom: 24px;">
+    <div id="standalone-terminal-container" style="height: 100%;"></div>
+</div>
+
+<!-- Quick Commands Helper Bar -->
+<div style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 16px;">
+    <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; color: #58a6ff;">
+        <i class="bi bi-lightning-charge"></i> Pintasan Perintah Populer (Klik untuk Menjalankan Langsung):
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button class="btn-run-cmd" data-cmd="ls -la"><code>ls -la</code></button>
+        <button class="btn-run-cmd" data-cmd="pwd"><code>pwd</code></button>
+        <button class="btn-run-cmd" data-cmd="tree"><code>tree</code></button>
+        <button class="btn-run-cmd" data-cmd="ps aux"><code>ps aux</code></button>
+        <button class="btn-run-cmd" data-cmd="df -h"><code>df -h</code></button>
+        <button class="btn-run-cmd" data-cmd="free -m"><code>free -m</code></button>
+        <button class="btn-run-cmd" data-cmd="neofetch"><code>neofetch</code></button>
+        <button class="btn-run-cmd" data-cmd="cat /etc/os-release"><code>cat /etc/os-release</code></button>
+        <button class="btn-run-cmd" data-cmd="ip a"><code>ip a</code></button>
+        <button class="btn-run-cmd" data-cmd="ping 8.8.8.8"><code>ping 8.8.8.8</code></button>
+        <button class="btn-run-cmd" data-cmd="nano halo.sh"><code>nano halo.sh</code></button>
+        <button class="btn-run-cmd" data-cmd="help"><code>help</code></button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const scenariosData = {{ scenarios|tojson }};
+    const currentScenarioId = "{{ current_scenario }}";
+
+    function updateScenarioInfo(sId) {
+        const found = scenariosData.find(s => s.id === sId) || scenariosData[0];
+        document.getElementById('scenario-info-title').innerHTML = `<i class="bi bi-info-circle"></i> Skenario: ${found.name} (${found.badge})`;
+        document.getElementById('scenario-info-desc').innerHTML = found.desc;
+    }
+
+    function switchScenario(sId) {
+        window.vfs.init(sId);
+        if (window.terminalInstance) {
+            window.terminalInstance.clearScreen();
+            window.terminalInstance.printLine(`[Skenario beralih ke: ${sId}]`, 'color-info');
+            window.terminalInstance.prompt();
+        }
+        updateScenarioInfo(sId);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        window.vfs.init(currentScenarioId);
+        window.initTerminal('standalone-terminal-container');
+        updateScenarioInfo(currentScenarioId);
+    });
+</script>
+{% endblock %}

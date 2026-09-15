@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Daftar Akun Baru — LinuxAcademy LMS{% endblock %}
+
+{% block content %}
+<div class="auth-page-container">
+    <div class="auth-card" style="max-width: 520px;">
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <h2 class="auth-title">Daftar Akun Baru</h2>
+            <p class="auth-subtitle">Mulai perjalanan belajar sistem operasi Linux dan dapatkan sertifikat resmi.</p>
+        </div>
+
+        <form method="POST" action="/register" class="auth-form">
+            <!-- Role Selection -->
+            <div class="form-group">
+                <label class="form-label">Daftar Sebagai Peran:</label>
+                <div class="role-selector-wrap">
+                    <label class="role-radio-card" id="card-role-siswa">
+                        <input type="radio" name="role" value="siswa" checked onchange="toggleTeacherField(false)">
+                        <div class="role-card-content">
+                            <i class="bi bi-mortarboard-fill"></i>
+                            <strong>Siswa / Pelajar</strong>
+                            <span>Akses modul, virtual lab, kuis & sertifikat</span>
+                        </div>
+                    </label>
+
+                    <label class="role-radio-card" id="card-role-guru">
+                        <input type="radio" name="role" value="guru" onchange="toggleTeacherField(true)">
+                        <div class="role-card-content">
+                            <i class="bi bi-person-workspace"></i>
+                            <strong>Guru / Instruktur</strong>
+                            <span>Pantau progres, nilai kuis & aktivitas kelas</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Teacher Verification Code (Conditional) -->
+            <div class="form-group hidden" id="teacher-code-group">
+                <label for="teacher_code" class="form-label text-warning">
+                    <i class="bi bi-key-fill"></i> Kode Verifikasi Instruktur / Guru
+                </label>
+                <div class="input-with-icon">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <input type="text" id="teacher_code" name="teacher_code" class="form-input" placeholder="Masukkan kode: GURU2026">
+                </div>
+                <small style="color: #8b949e; font-size: 12px; margin-top: 4px; display: block;">
+                    *Untuk keperluan pengujian/demo lokal, gunakan kode: <code>GURU2026</code>
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="fullname" class="form-label">Nama Lengkap Siswa / Guru *</label>
+                <div class="input-with-icon">
+                    <i class="bi bi-card-text"></i>
+                    <input type="text" id="fullname" name="fullname" class="form-input" placeholder="Nama yang akan tertera di sertifikat" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username *</label>
+                <div class="input-with-icon">
+                    <i class="bi bi-at"></i>
+                    <input type="text" id="username" name="username" class="form-input" placeholder="Huruf kecil tanpa spasi (misal: budi_linux)" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Alamat Email (Opsional)</label>
+                <div class="input-with-icon">
+                    <i class="bi bi-envelope-fill"></i>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="nama@contoh.com">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="form-group">
+                    <label for="password" class="form-label">Kata Sandi *</label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-lock-fill"></i>
+                        <input type="password" id="password" name="password" class="form-input" placeholder="Min. 4 karakter" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Konfirmasi Sandi *</label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-shield-check"></i>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Ulangi kata sandi" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="padding: 10px; font-size: 15px; margin-top: 10px;">
+                <i class="bi bi-check-circle-fill"></i> Selesaikan Pendaftaran
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Sudah memiliki akun? <a href="/login" class="auth-link">Masuk ke Sini</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleTeacherField(isTeacher) {
+        const codeGroup = document.getElementById('teacher-code-group');
+        const codeInput = document.getElementById('teacher_code');
+        if (isTeacher) {
+            codeGroup.classList.remove('hidden');
+            codeInput.setAttribute('required', 'required');
+            codeInput.value = 'GURU2026';
+        } else {
+            codeGroup.classList.add('hidden');
+            codeInput.removeAttribute('required');
+            codeInput.value = '';
+        }
+    }
+</script>
+{% endblock %}

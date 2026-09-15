@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Tantangan Praktik CTF — LinuxAcademy{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <h1 style="font-size: 28px; font-weight: 800;"><i class="bi bi-flag-fill text-warning"></i> Tantangan Praktik Linux (CTF Missions)</h1>
+    <p style="color: var(--text-secondary); font-size: 14px;">
+        Selesaikan misi investigasi dan problem-solving Linux nyata di bawah ini. Uji perintah Anda di terminal untuk menemukan flag atau memodifikasi kondisi sistem.
+    </p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px;">
+    <!-- Challenges List Column -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+        {% for c in challenges %}
+        <div class="module-card" id="challenge-card-{{ c.id }}" style="border-left: 4px solid var(--accent-blue);">
+            <div class="module-header">
+                <span style="display: flex; gap: 8px; align-items: center;">
+                    <span class="task-badge badge-pending" style="color: var(--accent-yellow); border-color: rgba(210, 153, 34, 0.4);">
+                        <i class="bi bi-star-fill"></i> {{ c.points }} Poin
+                    </span>
+                    <span style="font-size: 12px; color: #8b949e;">{{ c.category }}</span>
+                </span>
+                <span class="module-meta" style="font-weight: 600; color: #58a6ff;">{{ c.difficulty }}</span>
+            </div>
+
+            <h3 class="module-title">{{ c.title }}</h3>
+            <div class="module-desc">{{ c.description|safe }}</div>
+
+            <!-- Collapsible Hint -->
+            <div style="margin-bottom: 12px;">
+                <button class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 4px 10px;" onclick="toggleHint('hint-{{ c.id }}')">
+                    <i class="bi bi-lightbulb"></i> Petunjuk (Hint)
+                </button>
+                <div id="hint-{{ c.id }}" class="hidden callout callout-info" style="margin-top: 8px; padding: 8px 12px; font-size: 12.5px;">
+                    {{ c.hint|safe }}
+                </div>
+            </div>
+
+            <!-- Submission Area -->
+            <div style="display: flex; gap: 8px; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <input type="text" id="flag-input-{{ c.id }}" class="search-input" style="padding: 6px 10px; font-size: 13px;" placeholder="Masukkan flag atau klik periksa...">
+                <button class="btn btn-primary btn-sm" onclick="verifyChallenge('{{ c.id }}')">
+                    <i class="bi bi-check2"></i> Periksa
+                </button>
+            </div>
+            <div id="status-{{ c.id }}" style="font-size: 12px; margin-top: 6px;"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Terminal Column -->
+    <div style="height: calc(100vh - 180px); position: sticky; top: 80px;">
+        <div id="challenge-terminal-container" style="height: 100%;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const challengesData = {{ challenges|tojson }};
+
+    function toggleHint(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden');
+    }
+
+    function verifyChallenge(cid) {
+        const c = challengesData.find(item => item.id === cid);
+        if (!c) return;
+
+        const inputVal = (document.getElementById(`flag-input-${cid}`).value || '').trim();
+        const statusEl = document.getElementById(`status-${cid}`);
+        const cardEl = document.getElementById(`challenge-card-${cid}`);
+
+        let passed = false;
+
+        // Check 1: Direct flag match
+        if (c.flag && inputVal === c.flag) {
+            passed = true;
+        }
+
+        // Check 2: VFS Condition Inspection
+        if (c.target_file) {
+            const node = window.vfs.getNode(c.target_file);
+            if (node) {
+                if (c.expected_mode && node.mode === c.expected_mode) {
+                    passed = true;
+                } else if (c.check_contains && node.content && node.content.includes(c.check_contains)) {
+                    passed = true;
+                } else if (!c.expected_mode && !c.check_contains) {
+                    passed = true;
+                }
+            }
+        }
+
+        if (c.target_process) {
+            const running = window.shell.processes.some(p => p.command.includes(c.target_process));
+            if (!running) {
+                passed = true;
+            }
+        }
+
+        if (passed) {
+            statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Selesai! Poin telah ditambahkan ke profil Anda.</span>';
+            cardEl.style.borderLeftColor = 'var(--accent-green)';
+            if (!window.lms.state.solvedChallenges.includes(cid)) {
+                window.lms.state.solvedChallenges.push(cid);
+                window.lms.state.totalPoints = (window.lms.state.totalPoints || 0) + c.points;
+                window.lms.saveState();
+            }
+            window.lms.showToast(`Misi Selesai! 🎖️`, `Berhasil memecahkan: ${c.title} (+${c.points} Poin)`);
+        } else {
+            statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Belum sesuai. Periksa instruksi atau petunjuk dan coba lagi.</span>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        window.initTerminal('challenge-terminal-container');
+
+        // Check already solved challenges
+        challengesData.forEach(c => {
+            if (window.lms.state.solvedChallenges.includes(c.id)) {
+                const statusEl = document.getElementById(`status-${c.id}`);
+                const cardEl = document.getElementById(`challenge-card-${c.id}`);
+                if (statusEl) statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Sudah Diselesaikan!</span>';
+                if (cardEl) cardEl.style.borderLeftColor = 'var(--accent-green)';
+            }
+        });
+    });
+</script>
+{% endblock %}
