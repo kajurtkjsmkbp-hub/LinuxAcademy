@@ -100,6 +100,35 @@
         </div>
     </div>
 
+    <!-- Create Teacher Account Section -->
+    <div class="dashboard-table-card" style="margin-bottom: 24px;">
+        <div class="table-card-header" style="padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700;"><i class="bi bi-person-plus-fill text-warning"></i> Tambah Akun Guru / Instruktur Baru</h3>
+                <p style="font-size: 13px; color: #8b949e; margin-top: 2px;">Sebagai Admin, Anda dapat membuatkan akses untuk guru atau instruktur lain.</p>
+            </div>
+        </div>
+        <div style="padding: 16px;">
+            <form method="POST" action="/api/admin/create_teacher" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Nama Lengkap</label>
+                    <input type="text" name="fullname" class="search-input" style="width: 100%; padding: 8px 12px;" required placeholder="Nama Lengkap Guru">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Username</label>
+                    <input type="text" name="username" class="search-input" style="width: 100%; padding: 8px 12px;" required placeholder="Username">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Password</label>
+                    <input type="password" name="password" class="search-input" style="width: 100%; padding: 8px 12px;" required placeholder="Kata Sandi">
+                </div>
+                <button type="submit" class="btn btn-warning" style="padding: 8px 16px; height: 38px;">
+                    <i class="bi bi-plus-circle-fill"></i> Buat Akun Guru
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Student Table Section -->
     <div class="dashboard-table-card">
         <div class="table-card-header">

@@ -37,26 +37,7 @@
             </button>
         </form>
 
-        <!-- Quick Demo Switcher -->
-        <div class="demo-accounts-box">
-            <div class="demo-title"><i class="bi bi-lightning-charge-fill text-warning"></i> Akun Uji Coba Cepat (Klik untuk Isi Otomatis):</div>
-            <div class="demo-buttons-grid">
-                <button type="button" class="btn-demo" onclick="fillCredentials('guru', 'guru123')">
-                    <i class="bi bi-person-workspace text-warning"></i>
-                    <div>
-                        <strong>Login Guru / Instruktur</strong>
-                        <span>User: <code>guru</code> | Pass: <code>guru123</code></span>
-                    </div>
-                </button>
-                <button type="button" class="btn-demo" onclick="fillCredentials('siswa', 'siswa123')">
-                    <i class="bi bi-mortarboard-fill text-info"></i>
-                    <div>
-                        <strong>Login Siswa Demo</strong>
-                        <span>User: <code>siswa</code> | Pass: <code>siswa123</code></span>
-                    </div>
-                </button>
-            </div>
-        </div>
+
 
         <div class="auth-footer">
             Belum memiliki akun? <a href="/register" class="auth-link">Daftar Akun Baru</a>
@@ -64,10 +45,5 @@
     </div>
 </div>
 
-<script>
-    function fillCredentials(user, pass) {
-        document.getElementById('username').value = user;
-        document.getElementById('password').value = pass;
-    }
-</script>
+
 {% endblock %}

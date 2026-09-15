@@ -14,46 +14,10 @@
         </div>
 
         <form method="POST" action="/register" class="auth-form">
-            <!-- Role Selection -->
-            <div class="form-group">
-                <label class="form-label">Daftar Sebagai Peran:</label>
-                <div class="role-selector-wrap">
-                    <label class="role-radio-card" id="card-role-siswa">
-                        <input type="radio" name="role" value="siswa" checked onchange="toggleTeacherField(false)">
-                        <div class="role-card-content">
-                            <i class="bi bi-mortarboard-fill"></i>
-                            <strong>Siswa / Pelajar</strong>
-                            <span>Akses modul, virtual lab, kuis & sertifikat</span>
-                        </div>
-                    </label>
-
-                    <label class="role-radio-card" id="card-role-guru">
-                        <input type="radio" name="role" value="guru" onchange="toggleTeacherField(true)">
-                        <div class="role-card-content">
-                            <i class="bi bi-person-workspace"></i>
-                            <strong>Guru / Instruktur</strong>
-                            <span>Pantau progres, nilai kuis & aktivitas kelas</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Teacher Verification Code (Conditional) -->
-            <div class="form-group hidden" id="teacher-code-group">
-                <label for="teacher_code" class="form-label text-warning">
-                    <i class="bi bi-key-fill"></i> Kode Verifikasi Instruktur / Guru
-                </label>
-                <div class="input-with-icon">
-                    <i class="bi bi-shield-lock-fill"></i>
-                    <input type="text" id="teacher_code" name="teacher_code" class="form-input" placeholder="Masukkan kode: GURU2026">
-                </div>
-                <small style="color: #8b949e; font-size: 12px; margin-top: 4px; display: block;">
-                    *Untuk keperluan pengujian/demo lokal, gunakan kode: <code>GURU2026</code>
-                </small>
-            </div>
+            <input type="hidden" name="role" value="siswa">
 
             <div class="form-group">
-                <label for="fullname" class="form-label">Nama Lengkap Siswa / Guru *</label>
+                <label for="fullname" class="form-label">Nama Lengkap *</label>
                 <div class="input-with-icon">
                     <i class="bi bi-card-text"></i>
                     <input type="text" id="fullname" name="fullname" class="form-input" placeholder="Nama yang akan tertera di sertifikat" required>
@@ -105,19 +69,5 @@
     </div>
 </div>
 
-<script>
-    function toggleTeacherField(isTeacher) {
-        const codeGroup = document.getElementById('teacher-code-group');
-        const codeInput = document.getElementById('teacher_code');
-        if (isTeacher) {
-            codeGroup.classList.remove('hidden');
-            codeInput.setAttribute('required', 'required');
-            codeInput.value = 'GURU2026';
-        } else {
-            codeGroup.classList.add('hidden');
-            codeInput.removeAttribute('required');
-            codeInput.value = '';
-        }
-    }
-</script>
+
 {% endblock %}

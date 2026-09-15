@@ -1183,8 +1183,7 @@ def register():
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
-        role = request.form.get('role', 'siswa').strip().lower()
-        teacher_code = request.form.get('teacher_code', '').strip()
+        role = 'siswa'
 
         if not username or not fullname or not password:
             flash('Harap lengkapi semua bidang yang bertanda wajib.', 'danger')
@@ -1197,13 +1196,6 @@ def register():
         if password != confirm_password:
             flash('Konfirmasi kata sandi tidak cocok.', 'danger')
             return render_template('register.html')
-
-        if role == 'guru':
-            if teacher_code != 'GURU2026':
-                flash('Kode Verifikasi Guru tidak valid (gunakan kode: GURU2026).', 'danger')
-                return render_template('register.html')
-        else:
-            role = 'siswa'
 
         result = db.create_user(username, fullname, email, password, role=role)
         if not result['success']:
@@ -1296,6 +1288,29 @@ def api_upload_signature():
         return jsonify({'success': True, 'filename': filename})
     
     return jsonify({'success': False, 'message': 'Format file tidak didukung (gunakan PNG/JPG)'})
+
+@app.route('/api/admin/create_teacher', methods=['POST'])
+@teacher_required
+def api_create_teacher():
+    username = request.form.get('username', '').strip().lower()
+    fullname = request.form.get('fullname', '').strip()
+    password = request.form.get('password', '')
+    
+    if not username or not fullname or not password:
+        flash('Harap lengkapi semua kolom untuk membuat akun guru.', 'danger')
+        return redirect(url_for('teacher_dashboard'))
+        
+    if len(password) < 4:
+        flash('Kata sandi guru minimal 4 karakter.', 'danger')
+        return redirect(url_for('teacher_dashboard'))
+        
+    result = db.create_user(username, fullname, '', password, role='guru')
+    if result['success']:
+        flash(f'Akun guru baru ({fullname}) berhasil dibuat!', 'success')
+    else:
+        flash(f'Gagal membuat akun guru: {result["error"]}', 'danger')
+        
+    return redirect(url_for('teacher_dashboard'))
 
 @app.route('/api/current-user')
 def api_current_user():
